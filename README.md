@@ -27,6 +27,89 @@
 | [日志服务](https://www.volcengine.com/product/tls) | 提供针对日志类数据的一站式服务 | [计费说明](https://www.volcengine.com/docs/6470/1215813) |
 <br>
 
+# Local Vector Database Setup (Alternative)
+
+This project now also supports an alternative setup using a local vector database (ChromaDB) and a local embedding model provider (Ollama). This allows for a completely self-hosted environment.
+
+For a detailed technical evaluation, design, and implementation plan for this local setup, please refer to the [VECTOR_DB_EVALUATION.md](VECTOR_DB_EVALUATION.md) document.
+
+## Local Setup Instructions
+
+These instructions assume you want to run the backend services locally, storing and processing vector embeddings on your own machine.
+
+### Prerequisites:
+
+*   All prerequisites from the standard "部署说明" section (Python, Node, PNPM) still apply.
+*   **Ollama**: You need to install Ollama. Follow the instructions at [https://ollama.ai/install.sh](https://ollama.ai/install.sh).
+    ```bash
+    curl -fsSL https://ollama.ai/install.sh | sh
+    ```
+*   **Ollama Model**: After installing Ollama, pull the required embedding model. The default model used in this project is `nomic-embed-text` (768 dimensions).
+    ```bash
+    ollama pull nomic-embed-text
+    ```
+    You may also want to ensure Ollama service is running (e.g., `sudo systemctl start ollama` if you're on Linux with systemd).
+
+### Setup Steps:
+
+1.  **Download Code Repository**:
+    If you haven't already, clone the repository:
+    ```bash
+    git clone https://github.com/volcengine/ai-app-lab.git
+    cd demohouse/longterm_memory
+    ```
+
+2.  **Configure for Local Services**:
+    The backend configuration needs to be set for local services. The file `backend/code/config.py` should already be pre-configured for this local setup if you are on a branch that includes these changes. If you need to manually configure it, refer to the `mem0_config` section in `VECTOR_DB_EVALUATION.md` (Section 4.2).
+
+3.  **Install Backend Dependencies**:
+    Navigate to the backend directory and set up the Python environment using Poetry:
+    ```bash
+    cd backend
+    python -m venv .venv
+    source .venv/bin/activate  # On Windows use: .venv\Scripts\activate
+    pip install poetry==1.6.1  # Or your preferred Poetry version
+    poetry install --no-root   # --no-root if backend is not a package itself
+    ```
+    *(Note: Ensure `tqdm` and `psutil` are added to `pyproject.toml` if they are not already, as they are used by the new scripts. For this task, assume they will be added separately or are already present).*
+
+4.  **Initialize Local Chroma Database**:
+    Run the initialization script for ChromaDB. From the `backend/` directory (with the virtual environment activated):
+    ```bash
+    python scripts/init_chroma.py
+    ```
+    This will create a `chroma_db` directory in the project root (relative to where the script places it, typically `../chroma_db` from script location, so project root if script is in `backend/scripts`).
+
+5.  **Check Ollama Service (Optional but Recommended)**:
+    Verify that the Ollama service is running and the model is accessible. From the `backend/` directory:
+    ```bash
+    python scripts/check_ollama.py
+    ```
+
+6.  **Start Backend and Ollama Services**:
+    Use the service manager script to start Ollama (if not already running via systemctl) and the backend application. From the `backend/scripts/` directory:
+    ```bash
+    ./service_manager.sh start all
+    ```
+    Or, to start them individually:
+    ```bash
+    ./service_manager.sh start ollama
+    ./service_manager.sh start backend
+    ```
+    The backend service will run in the background (see `backend/backend.log`).
+
+7.  **Start Frontend**:
+    Navigate to the frontend directory and start the frontend application:
+    ```bash
+    cd ../frontend
+    pnpm install
+    pnpm run dev
+    ```
+
+Your application should now be running using the local ChromaDB and Ollama services. For troubleshooting and further details, consult [VECTOR_DB_EVALUATION.md](VECTOR_DB_EVALUATION.md).
+
+---
+
 # 部署说明
 ## 环境准备
 * 要求 3.9 ≤ Python 版本 ＜ 3.12

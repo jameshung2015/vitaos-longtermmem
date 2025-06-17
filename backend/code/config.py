@@ -13,21 +13,26 @@
 import os
 from prompt import SUMMARY_PROMPT
 
-os.environ['VOLC_ACCESSKEY'] = '<ACCESSKEY_FOR_VOLCENGINE>'
-os.environ['VOLC_SECRETKEY'] = '<SECRETKEY_FOR_VOLCENGINE>'
+# os.environ['VOLC_ACCESSKEY'] = '<ACCESSKEY_FOR_VOLCENGINE>'
+# os.environ['VOLC_SECRETKEY'] = '<SECRETKEY_FOR_VOLCENGINE>'
 
-CHAT_ENDPOINT = "<ENDPOINT_ID_FOR_DOUBAO>"
-EMBEDDING_ENDPOINT = "<ENDPOINT_ID_FOR_DOUBAO_EMBEDDING>"
-SUMMARY_ENDPOINT = "<ENDPOINT_ID_FOR_DEEPSEEK>"  
-COLLECTION_NAME = "demohouse_mem0"
+SUMMARY_ENDPOINT = "<ENDPOINT_ID_FOR_DEEPSEEK>"  # Keep this as it's used by LLM
+OLLAMA_BASE_URL = "http://localhost:11434"
+EMBED_MODEL = "nomic-embed-text"
+COLLECTION_NAME = "longterm_memory_local"
 
 mem0_config = {
     "vector_store": {
-        "provider": "vikingdb",
+        "provider": "chroma",
         "config": {
             "collection_name": COLLECTION_NAME,
+            "path": "./chroma_db",
+            "host": "localhost",
+            "port": 8000,
+            "allow_reset": True,
+            "anonymized_telemetry": False,
         }
-    }, 
+    },
     "llm": {
         "provider": "doubao",
         "config": {
@@ -35,9 +40,12 @@ mem0_config = {
         }
     },
     "embedder": {
-        "provider": "doubao",
+        "provider": "ollama",
         "config": {
-            "model": EMBEDDING_ENDPOINT,
+            "model": EMBED_MODEL,
+            "base_url": OLLAMA_BASE_URL,
+            "dimensions": 768, # for nomic-embed-text
+            "normalize": True,
         }
     },
     "custom_prompt": SUMMARY_PROMPT,
