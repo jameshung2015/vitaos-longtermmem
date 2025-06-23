@@ -1,0 +1,6 @@
+Flask>=2.0
+requests>=2.25.0  # To communicate with mem0_service and Windows Ollama
+python-dotenv>=0.20 # To load the same linux_config.json or its path
+
+# gunicorn will be used to run this app as well, but typically installed in the main venv.
+# If running separately, add gunicorn here.

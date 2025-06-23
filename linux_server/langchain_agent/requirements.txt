@@ -1,0 +1,12 @@
+langchain>=0.1.0   # Core Langchain library
+langchain-community>=0.0.20 # For Ollama, text splitters, etc.
+
+# SMB client to access Windows share
+pysmbclient>=0.2.0 # Replaces smbprotocol, as agent.py uses 'from smbclient import ...'
+
+requests>=2.25.0  # HTTP client to interact with mem0 service and Windows Ollama
+python-dotenv>=0.20 # For loading config file path or other env vars
+
+# tiktoken (often a transitive dependency for token counting in Langchain, good to list if directly used or for clarity)
+# tiktoken>=0.5.0
+```

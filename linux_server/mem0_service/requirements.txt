@@ -1,0 +1,10 @@
+Flask>=2.0
+gunicorn>=20.0
+mem0ai>=0.1.100 # Specify a recent version or adjust as needed based on features
+lancedb>=0.5.0   # Or other vector store client if mem0ai needs explicit install for it
+python-dotenv>=0.20
+# Add any other specific dependencies mem0ai or its chosen vector store might require
+# For example, if mem0ai uses SentenceTransformers for default embeddings (though we aim to use Ollama)
+# sentence-transformers
+# Pyarrow, if not pulled in by lancedb and needed
+# pyarrow

@@ -1,0 +1,70 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# IDE
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Logs
+logs/
+*.log
+
+# Chatlog specific (if any generated locally)
+# Add any specific patterns if chatlog tool creates temp files you want to ignore
+
+# Ollama models (these are large and should not be in git)
+# Adjust if Ollama stores models in a subdirectory of the project
+# (usually models are stored in a system-wide directory)
+
+# WeChatMemories/RawLogs (User data, should not be committed)
+WeChatMemories/
+RawLogs/
+
+# Distribution / packaging
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+#  Usually these files are created by PyInstaller in a project subfolder
+#  *.manifest
+#  *.spec
+
+# Backup files
+*.bak
+*.old
+*.orig

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WeChatMemories Chatbot</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Basic inline styles for now, can be moved to style.css */
+        body { font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; background-color: #f4f4f4; }
+        #chat-container { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; }
+        .message { max-width: 70%; padding: 10px 15px; margin-bottom: 10px; border-radius: 18px; line-height: 1.4; }
+        .user-message { background-color: #007bff; color: white; align-self: flex-end; margin-left: auto; }
+        .bot-message { background-color: #e9e9eb; color: #333; align-self: flex-start; margin-right: auto; }
+        .bot-message pre { white-space: pre-wrap; word-wrap: break-word; }
+        #input-area { display: flex; padding: 15px; border-top: 1px solid #ddd; background-color: #fff; }
+        #message-input { flex-grow: 1; padding: 10px; border: 1px solid #ccc; border-radius: 20px; margin-right: 10px; }
+        #send-button { padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 20px; cursor: pointer; }
+        #send-button:disabled { background-color: #aaa; }
+        .loader { text-align: center; padding: 10px; }
+        .loader div { width: 10px; height: 10px; background-color: #007bff; border-radius: 100%; display: inline-block; animation: sk-bouncedelay 1.4s infinite ease-in-out both; }
+        .loader .bounce1 { animation-delay: -0.32s; }
+        .loader .bounce2 { animation-delay: -0.16s; }
+        @keyframes sk-bouncedelay { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
+        #context-selector { margin-bottom:10px; padding: 5px; border-radius: 5px;}
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <!-- Chat messages will appear here -->
+         <div class="bot-message"><p>Hello! Ask me about your WeChat history. Please select a chat context if you want to ask about a specific chat.</p></div>
+    </div>
+
+    <div id="input-area">
+        <select id="context-selector">
+            <option value="">General Query (No Specific Chat Context)</option>
+            <!-- Options will be populated dynamically if we implement chat list fetching -->
+            <!-- Example: <option value="wxid_john_doe">Chat with John Doe</option> -->
+        </select>
+        <input type="text" id="message-input" placeholder="Type your message...">
+        <button id="send-button">Send</button>
+    </div>
+    <div id="loader" class="loader" style="display: none;">
+        <div class="bounce1"></div>
+        <div class.bounce2"></div>
+        <div class="bounce3"></div>
+    </div>
+
+    <script>
+        const chatContainer = document.getElementById('chat-container');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        const loader = document.getElementById('loader');
+        const contextSelector = document.getElementById('context-selector');
+
+        // TODO: Populate contextSelector dynamically by fetching available chat contexts (user_ids from mem0)
+        // For now, user would need to know the target_chat_id if they want specific context.
+        // This is a placeholder. A real app might list contacts/groups.
+        // Example static contexts for testing:
+        const exampleContexts = [
+            {id: "sample_user1", name: "Sample User 1 (Test)"},
+            {id: "sample_group_chat", name: "Sample Group (Test)"}
+        ];
+        exampleContexts.forEach(ctx => {
+            const option = document.createElement('option');
+            option.value = ctx.id;
+            option.textContent = ctx.name;
+            contextSelector.appendChild(option);
+        });
+
+
+        sendButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        function addMessage(message, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', type + '-message');
+
+            // Basic Markdown-like formatting for newlines and code blocks (very simplified)
+            // For proper markdown, a library would be needed.
+            let htmlContent = message.replace(/\n/g, '<br>');
+            // This is a very naive way to handle code blocks, real markdown parsing is complex.
+            htmlContent = htmlContent.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+
+            messageDiv.innerHTML = `<p>${htmlContent}</p>`; // Wrap in <p> for consistent styling if not pre
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const messageText = messageInput.value.trim();
+            if (messageText === '') return;
+
+            addMessage(messageText, 'user');
+            messageInput.value = '';
+            sendButton.disabled = true;
+            loader.style.display = 'block';
+
+            const selectedContextId = contextSelector.value;
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: messageText,
+                        chat_context_id: selectedContextId ? selectedContextId : null
+                    }),
+                });
+
+                sendButton.disabled = false;
+                loader.style.display = 'none';
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    addMessage(`Error: ${errorData.error || response.statusText}`, 'bot');
+                    return;
+                }
+
+                const data = await response.json();
+                addMessage(data.answer, 'bot');
+
+            } catch (error) {
+                sendButton.disabled = false;
+                loader.style.display = 'none';
+                addMessage(`Network or application error: ${error.message}`, 'bot');
+                console.error('Send message error:', error);
+            }
+        }
+    </script>
+</body>
+</html>
+```
+
+This HTML provides a basic structure with:
+*   A chat display area.
+*   An input field and send button.
+*   A dropdown (`context-selector`) to *eventually* select the chat context (`user_id` for mem0 RAG). Currently, it's populated with static examples. A real implementation would need an endpoint to fetch available `user_id`s from the `mem0_service` (e.g., from the metadata of stored log entries).
+*   JavaScript to handle sending messages to the `/chat` backend endpoint and displaying responses.
+*   A simple loading indicator.
+*   Very basic styling (can be expanded in `style.css`).
+
+Next, the empty `static/style.css`. It needs a `static` directory.
